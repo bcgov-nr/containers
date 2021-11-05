@@ -1,0 +1,5 @@
+# Edit the file to add any domains needed, one per line. 
+# The format relies on Regular Expresssions (regex) to parse, which is misleading for those unaware because ".gov.bc.ca" # would suggest subdomain support.  For actual subdomain support, the asterisk (*) must be declared after the first period # because the period in regex means "any single character", but requires the asterisk to be read as "any character(s)" 
+# For example: .*gov.bc.ca
+# ...would match the gov.bc.ca domain, as well as any of its subdomains.
+kinesis.ca-central-1.amazonaws.com
