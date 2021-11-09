@@ -1,5 +1,7 @@
 # TinyProxy conf
 
+{::options parse_block_html="true" /}
+
 Table of Contents:
 
 - [filter](#filter)
@@ -31,7 +33,9 @@ The format relies on Regular Expresssions (regex) to parse, which is misleading 
 ---
 Tinyproxy reads its configuration file, tinyproxy.conf.  The Tinyproxy configuration file contains key-value pairs, one per line. Lines starting with # and empty lines are comments and are ignored. Keywords are case-insensitive, whereas values are case-sensitive. Values may be enclosed in double-quotes (") if they contain spaces.
 
-:information_source: **While containerized**: there's no need to change/address the username and group.  
+| :information_source: **While containerized** |
+|---| 
+| there's no need to change/address the username and group. |
 
 ### Tinyproxy Port
 ---
@@ -41,7 +45,9 @@ The default port Tinyproxy listens on is 8888/tcp, but NRM typically uses 23128/
 ---
 Tinyproxy supports filtering of web sites based on URLs or domains. This option specifies the location of the file containing the filter rules, one rule per line.
 
-:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name.
+| :warning: **Tinyproxy can not filter HTTPS traffic by URL...** |
+|---| 
+| ...only domain name. |
 
 In the supplied tinyproxy.conf file, the Filter feature is enabled and uses the default path.
 
@@ -75,7 +81,17 @@ If this boolean option is set to Yes or On, filtering is performed for URLs rath
 
 In the supplied tinyproxy.conf file, the default FilterURLs policy is to deny.  
 
-:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name.
+| :warning: Tinyproxy can not filter HTTPS traffic by URL... |
+|---|
+| ...only domain name. |
+
+<div class="panel panel-info">
+**Tinyproxy can not filter HTTPS traffic by URL...**
+{: .panel-heading}
+<div class="panel-body">
+...only domain name.
+</div>
+</div>
 
 To enable this, comment the following:
 
