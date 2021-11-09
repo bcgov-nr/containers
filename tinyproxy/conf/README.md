@@ -1,9 +1,6 @@
 # TinyProxy conf
-
-{::options parse_block_html="true" /}
-
-Table of Contents:
-
+### Table of Contents:
+---
 - [filter](#filter)
 - [tinyproxy.conf](#tinyproxy.conf)
    - [Port](#tinyproxy-port)
@@ -84,14 +81,6 @@ In the supplied tinyproxy.conf file, the default FilterURLs policy is to deny.
 | :warning: Tinyproxy can not filter HTTPS traffic by URL... |
 |---|
 | ...only domain name. |
-
-<div class="panel panel-info">
-**Tinyproxy can not filter HTTPS traffic by URL...**
-{: .panel-heading}
-<div class="panel-body">
-...only domain name.
-</div>
-</div>
 
 To enable this, comment the following:
 
