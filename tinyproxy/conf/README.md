@@ -14,7 +14,9 @@ Table of Contents:
 ### Filter
 
 The tinyproxy filter file is a whitelist, where the allowed domains (and/or URLs) are stated.  One per line. 
+
 :warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name. 
+
 The format relies on Regular Expresssions (regex) to parse, which is misleading for those unaware because ".gov.bc.ca" # would suggest subdomain support.  For actual subdomain support, the asterisk (*) must be declared after the first period # because the period in regex means "any single character", but requires the asterisk to be read as "any character(s)". For exmaple:
 
 ````
@@ -33,7 +35,9 @@ The default port Tinyproxy listens on is 8888/tcp, but NRM typically uses 23128/
 
 ### Tinyproxy Filter
 Tinyproxy supports filtering of web sites based on URLs or domains. This option specifies the location of the file containing the filter rules, one rule per line.
-:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name. 
+
+:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name.
+
 In the supplied tinyproxy.conf file, the Filter feature is enabled and uses the default path.
 
 ```
@@ -62,7 +66,9 @@ FilterDefaultDeny Yes
 If this boolean option is set to Yes or On, filtering is performed for URLs rather than for domains. The default is to filter based on domains.
 
 In the supplied tinyproxy.conf file, the default FilterURLs policy is to deny.  
-:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name.  
+
+:warning: **Tinyproxy can not filter HTTPS traffic by URL...**: ...only domain name.
+
 To enable this, comment the following:
 
 ```
