@@ -30,9 +30,9 @@ The format relies on Regular Expresssions (regex) to parse, which is misleading 
 ---
 Tinyproxy reads its configuration file, tinyproxy.conf.  The Tinyproxy configuration file contains key-value pairs, one per line. Lines starting with # and empty lines are comments and are ignored. Keywords are case-insensitive, whereas values are case-sensitive. Values may be enclosed in double-quotes (") if they contain spaces.
 
-| :information_source: **While containerized** |
-|---| 
-| there's no need to change/address the username and group. |
+| :information_source: **While containerized...** |
+|:---|
+| ...there's no need to change/address the username and group.  These can be left as "nobody". |
 
 ### Tinyproxy Port
 ---
