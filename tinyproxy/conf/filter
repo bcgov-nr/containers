@@ -3,3 +3,4 @@
 # For example: .*gov.bc.ca
 # ...would match the gov.bc.ca domain, as well as any of its subdomains.
 kinesis.ca-central-1.amazonaws.com
+sts.ca-central-1.amazonaws.com
