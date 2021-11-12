@@ -1,126 +1,56 @@
-FROM amd64/debian:buster-slim as builder
+FROM fluent/fluent-bit:1.7.9 as fluent-bit
+FROM hashicorp/envconsul:0.12.0 as envconsul
 
-# Build vars
-ENV FLB_MAJOR 1
-ENV FLB_MINOR 7
-ENV FLB_PATCH 1
-ENV FLB_VERSION 1.7.1 
+FROM gcr.io/distroless/cc-debian10
 
-ARG FLB_TARBALL=https://github.com/fluent/fluent-bit/archive/v$FLB_VERSION.tar.gz
-ENV FLB_SOURCE $FLB_TARBALL
-RUN mkdir -p \
-        /fluent-bit/bin \
-        /fluent-bit/etc \
-        /fluent-bit/log \
-        /tmp/fluent-bit-master/
+# Certificates
+COPY --from=fluent-bit /usr/share/ca-certificates/ /usr/share/ca-certificates/
+COPY --from=fluent-bit /etc/ssl/ /etc/ssl/
 
-ENV DEBIAN_FRONTEND noninteractive
+# SSL stuff
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/*sasl* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libcrypto.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libssl.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libz* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libz* /lib/x86_64-linux-gnu/
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    ca-certificates \
-    cmake \
-    make \
-    tar \
-    libssl-dev \
-    libsasl2-dev \
-    pkg-config \
-    libsystemd-dev \
-    zlib1g-dev \
-    libpq-dev \
-    postgresql-server-dev-all \
-    flex \
-    bison \
-    && curl -L -o "/tmp/fluent-bit.tar.gz" ${FLB_SOURCE} \
-    && cd tmp/ && mkdir fluent-bit \
-    && tar zxfv fluent-bit.tar.gz -C ./fluent-bit --strip-components=1 \
-    && cd fluent-bit/build/ \
-    && rm -rf /tmp/fluent-bit/build/* \
-    && curl -sSL https://releases.hashicorp.com/envconsul/0.11.0/envconsul_0.11.0_linux_amd64.tgz -o /tmp/envconsul_0.11.0_linux_amd64.tgz \
-    && tar -zxvf /tmp/envconsul_0.11.0_linux_amd64.tgz -C /usr/local/bin \
-    && rm /tmp/envconsul_0.11.0_linux_amd64.tgz
+# For systemd
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libsystemd* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libselinux.so* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/liblzma.so* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/liblz4.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libgcrypt.so* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libpcre.so* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libgpg-error.so* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libpq.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libgssapi* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libldap* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libkrb* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/liblber* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libgnutls* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libp11-kit* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libidn2* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libunistring* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libtasn1* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libnettle* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libhogweed* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libgmp* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /usr/lib/x86_64-linux-gnu/libffi* /usr/lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libcom_err* /lib/x86_64-linux-gnu/
+COPY --from=fluent-bit /lib/x86_64-linux-gnu/libkeyutils* /lib/x86_64-linux-gnu/
 
-WORKDIR /tmp/fluent-bit/build/
-RUN cmake -DFLB_RELEASE=On \
-          -DFLB_TRACE=Off \
-          -DFLB_JEMALLOC=On \
-          -DFLB_TLS=On \
-          -DFLB_SHARED_LIB=Off \
-          -DFLB_EXAMPLES=Off \
-          -DFLB_HTTP_SERVER=On \
-          -DFLB_IN_SYSTEMD=On \
-          -DFLB_OUT_KAFKA=On \
-          -DFLB_OUT_PGSQL=On ..
+# Fluent Bit
+COPY --from=fluent-bit /fluent-bit /fluent-bit
 
-RUN make -j $(getconf _NPROCESSORS_ONLN)
-RUN install bin/fluent-bit /fluent-bit/bin/
+# envconsul
+COPY --from=envconsul /bin/envconsul /usr/local/bin/envconsul
 
 # Configuration files
 COPY ./conf/ /fluent-bit/etc/
 
-FROM gcr.io/distroless/cc-debian10
-LABEL Description="Fluent Bit docker image" Vendor="Fluent Organization" Version="1.1"
-
-# Copy certificates
-COPY --from=builder /usr/share/ca-certificates/  /usr/share/ca-certificates/
-COPY --from=builder /etc/ssl/ /etc/ssl/
-
-# SSL stuff
-COPY --from=builder /usr/lib/x86_64-linux-gnu/*sasl* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libz* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libz* /lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto.so* /usr/lib/x86_64-linux-gnu/
-
-# These below are all needed for systemd
-COPY --from=builder /lib/x86_64-linux-gnu/libsystemd* /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libselinux.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/liblzma.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/liblz4.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libgcrypt.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libpcre.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libgpg-error.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libpq.so* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libldap* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/liblber* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgnutls* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libp11-kit* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libidn2* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libunistring* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libtasn1* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libnettle* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libhogweed* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgmp* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libffi* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libcom_err* /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libkeyutils* /lib/x86_64-linux-gnu/
-COPY --from=builder /fluent-bit /fluent-bit
-COPY --from=builder /usr/local/bin/envconsul /usr/local/bin/envconsul
-
-EXPOSE 2020
-
-### Run vars ###
-
-# Fluent Bit
-ENV FLUENT_HOME /fluent-bit
-ENV FLUENT_VERSION 1.7.1
-ENV FLUENT_LABEL_ENV "test"
-ENV FLUENT_INPUT_LOGS_PATH "/sw_ux/httpd0*/logs/hot/*-access*.log*"
-ENV FLUENT_HOME "."
-
-# Vault
-ENV VAULT_ADDR "https://vault-iit.apps.silver.devops.gov.bc.ca"
-
-# AWS Kinesis
-ENV AWS_KINESIS_STREAM "nress-prod-iit-logs"
-ENV AWS_KINESIS_ROLE_ARN "arn:aws:iam::578527843179:role/PBMMOps-BCGOV_prod_Project_Role_ES_Role"
-
 # Entry point
+EXPOSE 2020
 CMD [ \
         "envconsul", \
         "-config=/fluent-bit/etc/fluent-bit.hcl", \

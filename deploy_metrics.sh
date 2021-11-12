@@ -49,6 +49,16 @@ then
 fi
 
 
+# Fluent Bit vars
+export FLUENT_INPUT_LOGS_PATH="/sw_ux/httpd0*/logs/hot/*-access*.log*"
+export FLUENT_HOME="."
+
+
+# AWS Kinesis vars
+export AWS_KINESIS_STREAM="nress-prod-iit-logs"
+export AWS_KINESIS_ROLE_ARN="arn:aws:iam::578527843179:role/PBMMOps-BCGOV_prod_Project_Role_ES_Role"
+
+
 # Vault vars
 #
 export VAULT_ADDR="https://vault-iit.apps.silver.devops.gov.bc.ca"
