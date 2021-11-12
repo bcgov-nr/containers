@@ -50,6 +50,8 @@ fi
 
 
 # Fluent Bit vars
+export FLUENT_VERSION=1.7.9
+export FLUENT_LABEL_ENV="test"
 export FLUENT_INPUT_LOGS_PATH="/sw_ux/httpd0*/logs/hot/*-access*.log*"
 export FLUENT_HOME="."
 
@@ -101,4 +103,4 @@ fi
 
 # Run in foreground, passing vars
 #
-podman run --name fluent-bit --rm -e VAULT_* -e HOST_* --pid="host" -v "/proc/stat:/proc/stat:ro" --privileged "${IMAGE}"
+podman run --name fluent-bit --rm -e FLUENT_* -e AWS_* -e VAULT_* -e HOST_* --pid="host" -v "/proc/stat:/proc/stat:ro" --privileged "${IMAGE}"
