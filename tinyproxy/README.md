@@ -1,5 +1,6 @@
 # Tinyproxy:
----
+Tinyproxy is a light-weight HTTP/HTTPS (80/443) proxy daemon for POSIX operating systems.
+
 - podman
   - [Build](#build)
   - [Run](#run)
