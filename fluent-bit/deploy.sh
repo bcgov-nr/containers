@@ -95,5 +95,5 @@ fi
 #
 # podman run --name fluent-bit --rm -e FLUENT_* -e AWS_* -e VAULT_* -e HOST_* --pid="host" -v "/proc/stat:/proc/stat:ro" --privileged "${IMAGE}"
 export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r '.auth.client_token')"
-podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/usr/local/etc/fluent-bit:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host fluent-bit sh
-# podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/usr/local/etc/fluent-bit:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host fluent-bit
+# podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/usr/local/etc/fluent-bit:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host fluent-bit sh
+podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/usr/local/etc/fluent-bit/conf:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host fluent-bit
