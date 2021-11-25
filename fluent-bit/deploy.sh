@@ -53,9 +53,9 @@ fi
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
 	podman build . -t fluent-bit:"${FLUENT_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}"
-	IMAGE="localhost/fluent-bit"
+	IMAGE="localhost/fluent-bit:${FLUENT_VERSION}"
 else
-	IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_LABEL_ENV}"
+	IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}"
 fi
 
 # Run in foreground, passing vars
