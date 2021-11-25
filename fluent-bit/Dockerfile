@@ -4,8 +4,9 @@ FROM hashicorp/envconsul:0.12.0 as envconsul
 FROM registry.access.redhat.com/ubi8/ubi-minimal as builder
 
 # Vars
-ENV fbVersion 1.8.7
-ENV fbURL https://github.com/fluent/fluent-bit/archive/refs/tags/v${fbVersion}.tar.gz
+ARG fbVersion=1.8.7
+ENV FLUENT_VERSION ${fbVersion}
+ENV fbURL https://github.com/fluent/fluent-bit/archive/refs/tags/v"${FLUENT_VERSION}".tar.gz
 
 ENV flexVersion 2.6.4
 ENV flexURL https://github.com/westes/flex/releases/download/v${flexVersion}/flex-${flexVersion}.tar.gz
@@ -35,7 +36,7 @@ RUN curl -L -s ${bisonURL} | tar xzv -C . --strip-components 1 && \
 WORKDIR /tmp/fluentbit
 RUN curl -L -s ${fbURL} | tar xzv -C . --strip-components 1 && \
 	cd build/ && \
-	cmake ../ -DFLB_STREAM_PROCESSOR=Off && \
+	cmake ../ -DFLB_STREAM_PROCESSOR=Off -DFLB_SHARED_LIB=Off -DFLB_EXAMPLES=Off -DFLB_IN_SYSTEMD=Off -DFLB_OUT_PGSQL=Off  && \
 	make && \
 	make install
 
@@ -46,6 +47,7 @@ FROM registry.access.redhat.com/ubi8/ubi-micro
 COPY --from=builder /usr/lib64/libgcc_s.so.1 /usr/lib64
 COPY --from=builder /usr/local/bin/fluent-bit /usr/local/bin
 
+# ssl and supporting
 COPY --from=builder /etc/pki/tls /etc/pki/tls
 COPY --from=builder /etc/pki/ca-trust /etc/pki/ca-trust
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
@@ -57,9 +59,8 @@ COPY --from=builder /usr/bin/openssl /usr/bin
 # envconsul
 COPY --from=envconsul /bin/envconsul /bin/envconsul
 
+# Configuration
 COPY ./conf/ /fluent-bit/etc
-
-EXPOSE 2020/tcp
 
 CMD [ \
         "envconsul", \
