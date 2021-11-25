@@ -52,7 +52,7 @@ fi
 # Set image and build, if necessary
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
-	podman build . -t fluent-bit --build-arg fbVersion="${FLUENT_VERSION}"
+	podman build . -t fluent-bit:"${FLUENT_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}"
 	IMAGE="localhost/fluent-bit"
 else
 	IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_LABEL_ENV}"
