@@ -18,11 +18,9 @@
 #%   ${THIS_FILE} 1.7.7
 #%
 
-
 # Specify halt conditions (errors, unsets, non-zero pipes) and verbosity
 set -euo pipefail
 [ ! "${VERBOSE:-}" == "true" ] || set -x
-
 
 # Check parameters - default to showing the help header from this script
 LATEST=1.8.7
@@ -62,4 +60,4 @@ fi
 
 # Run in foreground, passing vars
 export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r '.auth.client_token')"
-podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/usr/local/etc/fluent-bit/conf:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host "${IMAGE}"
+podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/fluent-bit/etc:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host "${IMAGE}"
