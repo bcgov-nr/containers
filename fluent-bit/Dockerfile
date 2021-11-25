@@ -57,14 +57,14 @@ COPY --from=builder /usr/bin/openssl /usr/bin
 # envconsul
 COPY --from=envconsul /bin/envconsul /bin/envconsul
 
-COPY ./conf/ /usr/local/etc/fluent-bit/conf
+COPY ./conf/ /fluent-bit/etc
 
 EXPOSE 2020/tcp
 
 CMD [ \
         "envconsul", \
-        "-config=/usr/local/etc/fluent-bit/conf/fluent-bit.hcl", \
+        "-config=/fluent-bit/etc/fluent-bit.hcl", \
         "fluent-bit", \
         "-c", \
-        "/usr/local/etc/fluent-bit/conf/fluent-bit.conf" \
+        "/fluent-bit/etc/fluent-bit.conf" \
     ]
