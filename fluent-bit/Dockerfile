@@ -19,7 +19,7 @@ RUN microdnf install cmake tar gzip gcc-c++ make m4 diffutils ca-certificates op
 WORKDIR /tmp/flex
 RUN curl -L -s ${flexURL} | tar xzv -C . --strip-components 1 && \
 	./configure --prefix=/usr/local/flex && \
-	make > /dev/null && \
+	make && \
 	make install && \
 	ln -s /usr/local/flex/bin/flex /usr/bin
 
@@ -27,7 +27,7 @@ RUN curl -L -s ${flexURL} | tar xzv -C . --strip-components 1 && \
 WORKDIR /tmp/bison
 RUN curl -L -s ${bisonURL} | tar xzv -C . --strip-components 1 && \
 	./configure --prefix=/usr/local/bison --with-libiconv-prefix=/usr/local/libiconv/ && \
-	make > /dev/null && \
+	make && \
 	make install && \
 	ln -s /usr/local/bison/bin/bison /usr/bin
 
@@ -36,7 +36,7 @@ WORKDIR /tmp/fluentbit
 RUN curl -L -s ${fbURL} | tar xzv -C . --strip-components 1 && \
 	cd build/ && \
 	cmake ../ -DFLB_STREAM_PROCESSOR=Off && \
-	make  > /dev/null && \
+	make && \
 	make install
 
 # Deployment container
@@ -46,7 +46,8 @@ FROM registry.access.redhat.com/ubi8/ubi-micro
 COPY --from=builder /usr/lib64/libgcc_s.so.1 /usr/lib64
 COPY --from=builder /usr/local/bin/fluent-bit /usr/local/bin
 
-COPY --from=builder /etc/pki /etc/pki
+COPY --from=builder /etc/pki/tls /etc/pki/tls
+COPY --from=builder /etc/pki/ca-trust /etc/pki/ca-trust
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=builder /usr/lib64/libssl.so.1.1 /usr/lib64
 COPY --from=builder /usr/lib64/libcrypto.so.1.1 /usr/lib64
