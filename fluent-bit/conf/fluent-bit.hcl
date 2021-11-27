@@ -7,3 +7,4 @@ secret {
     no_prefix = true
     path = "apps/prod/fluent/fluent-bit"
 }
+
