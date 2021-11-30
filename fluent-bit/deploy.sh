@@ -11,7 +11,7 @@
 #%
 #% Options:
 #%   -v, --version <version>    Version number of FluentBit to install, latest.  Default is 1.8.7.
-#%   -g, --daemon               Generate the systemd unit file for the container. Default is false.
+#%   -g, --generate             Generate the systemd unit file for the container. Default is false.
 #%   --env=/path/to/file        Specify path to env file. Default is ./local.env.
 #%   --RHEL=7                   Specify the version of RHEL the container uses.  Default is RHEL8.
 #%   -h, -?, --help             Displays this help dialog.
