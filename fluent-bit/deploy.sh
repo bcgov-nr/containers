@@ -19,7 +19,6 @@
 #%
 
 # Specify halt conditions (errors, unsets, non-zero pipes) and verbosity
-# set -euo pipefail
 set -euo pipefail
 [ ! "${VERBOSE:-}" == "true" ] || set -x
 
@@ -29,48 +28,48 @@ ISDAEMON=false
 
 # Check parameters - default to showing the help header from this script
 while :; do
-	
-	case ${1:-""} in
+
+    case ${1:-""} in
         -h|-\?|--help)
-			# Cat this file, grep #% lines and clean up with sed
-			THIS_FILE="$(dirname ${0})/$(basename ${0})"
-			cat ${THIS_FILE} |
-				grep "^#%" |
-				sed -e "s|^#%||g" |
-				sed -e "s|\${THIS_FILE}|${THIS_FILE}|g"
-			exit
-			;;
-		-d|--daemon)
-			ISDAEMON=true
-			;;
+            # Cat this file, grep #% lines and clean up with sed
+            THIS_FILE="$(dirname ${0})/$(basename ${0})"
+            cat ${THIS_FILE} |
+                grep "^#%" |
+                sed -e "s|^#%||g" |
+                sed -e "s|\${THIS_FILE}|${THIS_FILE}|g"
+            exit
+            ;;
+        -d|--daemon)
+            ISDAEMON=true
+            ;;
         --env=?*) # Delete everything up to "=" and assign the remainder:
-			ENVFILE=${1#*=}            
-        	;;
+            ENVFILE=${1#*=}            
+            ;;
         --env=) # Handle the case of an empty --env=
-  			die 'ERROR: "--env" requires a non-empty option argument.'           
-        	;;	
+            die 'ERROR: "--env" requires a non-empty option argument.'           
+            ;;    
         --RHEL=?*) # Delete everything up to "=" and assign the remainder:
-			RHELversion=${1#*=}            
-        	;;
+            RHELversion=${1#*=}            
+            ;;
         --RHEL=) # Handle the case of an empty --RHEL=
-  			die 'ERROR: "--RHEL" requires a non-empty option argument.'           
-        	;;				
+            die 'ERROR: "--RHEL" requires a non-empty option argument.'           
+            ;;                
         -v|--version) 
-			if [ "$2" ]; then
-  				FBVERSION=$2
-  				shift
-  			else
-  				die 'ERROR: "--version" requires a non-empty option argument.'
-  			fi
-  			;;
-		--)  # End of all options.
-			shift
-			break
-			;;
-		-?*)
-			printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
-				die ''
-			;;
+            if [ "$2" ]; then
+                FBVERSION=$2
+                shift
+            else
+                die 'ERROR: "--version" requires a non-empty option argument.'
+            fi
+            ;;
+        --)  # End of all options.
+            shift
+            break
+            ;;
+        -?*)
+            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            die ''
+            ;;
         *) break
     esac
     shift
@@ -85,17 +84,17 @@ export FLUENT_VERSION="${FBVERSION}"
 # Verify prerequisites
 if ( ! ( which podman && which vault && which jq))
 then
-	echo -e "\nPlease verify podman, vault and jq are installed\n"
-	exit
+    echo -e "\nPlease verify podman, vault and jq are installed\n"
+    exit
 fi
 
 # Set image and build, if necessary
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
-	podman build . -t fluent-bit:"${FLUENT_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}"
-	IMAGE="localhost/fluent-bit:${FLUENT_VERSION}"
+    podman build . -t fluent-bit:"${FLUENT_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}"
+    IMAGE="localhost/fluent-bit:${FLUENT_VERSION}"
 else
-	IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}"
+    IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}"
 fi
 
 # Run in foreground, passing vars
@@ -103,5 +102,5 @@ export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r 
 podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/fluent-bit/etc:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host "${IMAGE}"
 
 if "${ISDAEMON}" then
-	podman generate systemd --new --files --name fluent-bit:"${FLUENT_VERSION}"
+    podman generate systemd --new --files --name fluent-bit:"${FLUENT_VERSION}"
 if
