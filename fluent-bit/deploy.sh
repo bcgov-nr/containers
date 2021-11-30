@@ -7,15 +7,14 @@
 #%   Builds and deploys a local image
 #%
 #% Usage:
-#%   ${THIS_FILE} [FLUENT_VERSION]|1.8.7
+#%   ${THIS_FILE} [Options]
 #%
-#% Commands:
-#%   [FLUENT_VERSION] Deploys an image with the specified tag
-#%   help  Displays this help dialog
-#%
-#% Examples:
-#%   ${THIS_FILE} 
-#%   ${THIS_FILE} 1.7.7
+#% Options:
+#%   -v, --version <version>	Version number of FluentBit to install, latest.  Default is 1.8.7.
+#%   -g, --daemon				Generate the systemd unit file for the container. Default is false.
+#%   --env=/path/to/file		Specify path to env file. Default is ./local.env.
+#%   --RHEL=7					Specify the version of RHEL the container uses.  Default is RHEL8.
+#%   -h, -?, --help  			Displays this help dialog.
 #%
 
 # Specify halt conditions (errors, unsets, non-zero pipes) and verbosity
@@ -24,11 +23,11 @@ set -euo pipefail
 
 FBVERSION="1.8.7"
 ENVFILE="$(pwd)/local.env"
-ISDAEMON=false
+ISGENERATE=false
 
 # Check parameters - default to showing the help header from this script
-while :; do
-
+while true 
+do
     case ${1:-""} in
         -h|-\?|--help)
             # Cat this file, grep #% lines and clean up with sed
@@ -39,8 +38,8 @@ while :; do
                 sed -e "s|\${THIS_FILE}|${THIS_FILE}|g"
             exit
             ;;
-        -d|--daemon)
-            ISDAEMON=true
+        -g|--generate)
+            ISGENERATE=true
             ;;
         --env=?*) # Delete everything up to "=" and assign the remainder:
             ENVFILE=${1#*=}            
@@ -55,7 +54,8 @@ while :; do
             die 'ERROR: "--RHEL" requires a non-empty option argument.'           
             ;;                
         -v|--version) 
-            if [ "$2" ]; then
+            if [ "$2" ] 
+			then
                 FBVERSION=$2
                 shift
             else
@@ -101,6 +101,6 @@ fi
 export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r '.auth.client_token')"
 podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/fluent-bit/etc:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host "${IMAGE}"
 
-if "${ISDAEMON}" then
+if "${ISGENERATE}" then
     podman generate systemd --new --files --name fluent-bit:"${FLUENT_VERSION}"
 if
