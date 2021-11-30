@@ -62,16 +62,15 @@ while :; do
   			else
   				die 'ERROR: "--version" requires a non-empty option argument.'
   			fi
-
   			;;
 		--)  # End of all options.
-  			shift
-  			break
-  			;;
-  		-?*)
-  			printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
-			  die ''
-  			;;
+			shift
+			break
+			;;
+		-?*)
+			printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+				die ''
+			;;
         *) break
     esac
     shift
@@ -105,4 +104,4 @@ podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUE
 
 if "${ISDAEMON}" then
 	podman generate systemd --new --files --name fluent-bit:"${FLUENT_VERSION}"
-fi
+if
