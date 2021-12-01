@@ -13,7 +13,7 @@
 #%   -v, --version <version>    Version number of FluentBit to install, latest.  Default is 1.8.7.
 #%   -g, --generate             Generate the systemd unit file for the container. Default is false.
 #%   --env=/path/to/file        Specify path to env file. Default is ./local.env.
-#%   --RHEL=7                   Specify the version of RHEL the container uses.  Default is RHEL8.
+#%   --rhel=7                   Specify the version of RHEL the container uses.  Default is RHEL8.
 #%   -h, -?, --help             Displays this help dialog.
 #%
 
@@ -21,8 +21,17 @@
 set -euo pipefail
 [ ! "${VERBOSE:-}" == "true" ] || set -x
 
+die() { 
+    echo "$*" 1>&2 ; 
+    exit 1; 
+}
+
 FBVERSION="1.8.7"
 ENVFILE="$(pwd)/local.env"
+RHEL_VERSION_MIN=7
+RHEL_VERSION_MAX=8
+RHEL_VERSION=8
+DOCKERFILE_LOCATION="."
 ISGENERATE=false
 
 # Check parameters - default to showing the help header from this script
@@ -47,11 +56,25 @@ do
         --env=) # Handle the case of an empty --env=
             die 'ERROR: "--env" requires a non-empty option argument.'
             ;;    
-        --RHEL=?*) # Delete everything up to "=" and assign the remainder:
-            RHELversion=${1#*=}
+        --rhel=?*) # Delete everything up to "=" and assign the remainder:
+            RHEL_VERSION=${1#*=}
+
+            if ((${RHEL_VERSION} <= ${RHEL_VERSION_MIN} || ${RHEL_VERSION} >= ${RHEL_VERSION_MAX}))
+            then
+                die 'ERROR: "--rhel" only supports versions '"${RHEL_VERSION_MIN}"' to '"${RHEL_VERSION_MAX}"'.'
+            fi
+
+            case ${1:-""} in
+                7)
+                    DOCKERFILE_LOCATION="-f ./Dockerfile_RHEL7"
+                    ;;
+                8)
+                    DOCKERFILE_LOCATION="."
+                    ;;
+            esac
             ;;
-        --RHEL=) # Handle the case of an empty --RHEL=
-            die 'ERROR: "--RHEL" requires a non-empty option argument.'
+        --rhel=) # Handle the case of an empty --rhel=
+            die 'ERROR: "--rhel" requires a non-empty option argument, and only supports versions '"${RHEL_VERSION_MIN}"' to '"${RHEL_VERSION_MAX}"'.'
             ;;                
         -v|--version) 
             if [ "$2" ] 
@@ -91,15 +114,24 @@ fi
 # Set image and build, if necessary
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
-    podman build . -t fluent-bit:"${FLUENT_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}"
-    IMAGE="localhost/fluent-bit:${FLUENT_VERSION}"
+    podman build -t fluent-bit:"${FLUENT_VERSION}-rhel${RHEL_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}" "${DOCKERFILE_LOCATION}"
+    IMAGE="localhost/fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
 else
-    IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}"
+    IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
 fi
 
 # Run in foreground, passing vars
 export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r '.auth.client_token')"
-podman run -i -t --rm --name fluent-bit -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" -v "$(pwd)/conf:/fluent-bit/etc:z" --pid="host" -v "/proc/stat:/proc/stat:z" --privileged --network=host "${IMAGE}"
+
+# log-opt path - use absolute path ONLY; do not point to Windows drives on WSL 
+podman run -i -t --rm --name fluent-bit \
+    --log-opt path=$(pwd)/fluent.json \
+    -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" \
+    --pid="host" \
+    -v "$(pwd)/conf:/fluent-bit/etc:z" \
+    -v "/proc/stat:/proc/stat:z" \
+    --network=host \
+    "${IMAGE}"
 
 if "${ISGENERATE}"
 then
