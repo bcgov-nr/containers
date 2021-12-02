@@ -125,7 +125,7 @@ export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r 
 
 # log-opt path - use absolute path ONLY; do not point to Windows drives on WSL 
 podman run -i -t --rm --name fluent-bit \
-    --log-opt path=$(pwd)/logs/fluent.json \
+    --log-opt path=$(pwd)/logs/hot/fluent.json \
     -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" \
     --pid="host" \
     -v "$(pwd)/conf:/fluent-bit/etc:z" \
