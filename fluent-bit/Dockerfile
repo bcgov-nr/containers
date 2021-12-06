@@ -62,6 +62,8 @@ COPY --from=envconsul /bin/envconsul /bin/envconsul
 # Configuration
 COPY ./conf/ /fluent-bit/etc
 
+WORKDIR /fluent-bit/logs/hot/
+
 CMD [ \
         "envconsul", \
         "-config=/fluent-bit/etc/fluent-bit.hcl", \
