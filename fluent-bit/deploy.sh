@@ -59,14 +59,14 @@ do
         --rhel=?*) # Delete everything up to "=" and assign the remainder:
             RHEL_VERSION=${1#*=}
 
-            if ((${RHEL_VERSION} <= ${RHEL_VERSION_MIN} || ${RHEL_VERSION} >= ${RHEL_VERSION_MAX}))
+            if ((${RHEL_VERSION} < ${RHEL_VERSION_MIN} || ${RHEL_VERSION} > ${RHEL_VERSION_MAX}))
             then
                 die 'ERROR: "--rhel" only supports versions '"${RHEL_VERSION_MIN}"' to '"${RHEL_VERSION_MAX}"'.'
             fi
 
-            case ${1:-""} in
+            case ${RHEL_VERSION} in
                 7)
-                    DOCKERFILE_LOCATION="-f ./Dockerfile_RHEL7"
+                    DOCKERFILE_LOCATION="-f Dockerfile_RHEL7"
                     ;;
                 8)
                     DOCKERFILE_LOCATION="."
@@ -114,7 +114,7 @@ fi
 # Set image and build, if necessary
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
-    podman build -t fluent-bit:"${FLUENT_VERSION}-rhel${RHEL_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}" "${DOCKERFILE_LOCATION}"
+    podman build -t fluent-bit:"${FLUENT_VERSION}-rhel${RHEL_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}" ${DOCKERFILE_LOCATION}
     IMAGE="localhost/fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
 else
     IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
