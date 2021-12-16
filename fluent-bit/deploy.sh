@@ -26,6 +26,7 @@ die() {
     exit 1; 
 }
 
+CONTAINER_NAME="fluent-bit"
 FBVERSION="1.8.7"
 ENVFILE="$(pwd)/local.env"
 RHEL_VERSION_MIN=7
@@ -114,8 +115,8 @@ fi
 # Set image and build, if necessary
 if [ "${FLUENT_LABEL_ENV}" == "local" ]
 then
-    podman build -t fluent-bit:"${FLUENT_VERSION}-rhel${RHEL_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}" ${DOCKERFILE_LOCATION}
-    IMAGE="localhost/fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
+    podman build -t "${CONTAINER_NAME}":"${FLUENT_VERSION}-rhel${RHEL_VERSION}" --build-arg fbVersion="${FLUENT_VERSION}" ${DOCKERFILE_LOCATION}
+    IMAGE="localhost/${CONTAINER_NAME}:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
 else
     IMAGE="ghcr.io/bcgov/nr-ansible-fluent-bit:${FLUENT_VERSION}-rhel${RHEL_VERSION}"
 fi
@@ -124,7 +125,7 @@ fi
 export VAULT_TOKEN="$(vault login -method=oidc -format json 2>/dev/null | jq -r '.auth.client_token')"
 
 # log-opt path - use absolute path ONLY; do not point to Windows drives on WSL 
-podman run -i -t --rm --name fluent-bit \
+podman run -i -t --rm --name "${CONTAINER_NAME}" \
     -e "VAULT_*" -e "AWS_KINESIS_*" -e "FLUENT_*" -e "HOST_*" \
     --pid="host" \
     -v "$(pwd)/conf:/fluent-bit/etc:z" \
@@ -135,5 +136,25 @@ podman run -i -t --rm --name fluent-bit \
 
 if "${ISGENERATE}"
 then
-    podman generate systemd --new --files --name fluent-bit:"${FLUENT_VERSION}"
+    podman generate systemd --new --files --name "${CONTAINER_NAME}"
+
+    ln -s container-"${CONTAINER_NAME}".service /etc/systemd/system
+
+    if ( (which systemctl))
+    then
+
+        systemctl --user enable container-"${CONTAINER_NAME}".service
+
+        # Confirm systemd config
+        systemctl --user is-enabled container-"${CONTAINER_NAME}".service
+
+        # Start the service
+        systemctl --user start container-"${CONTAINER_NAME}".service
+
+        # Confirm the status of the service
+        systemctl --user status container-"${CONTAINER_NAME}".service
+    else
+        echo -e "\nPlease verify systemctl is installed\n"
+        exit
+    fi
 if
