@@ -26,8 +26,9 @@ die() {
     exit 1; 
 }
 
-TOMCAT_VERSION="8.0.17"
-OPENJDK_VERSION="1.8.0"
+TOMCAT_VERSION="8.0.51"
+JRE_VERSION="1.8.0"
+LOG4J_VERSION=""
 ENVFILE="$(pwd)/local.env"
 TOMCAT_LABEL_ENV="local"
 RHEL_VERSION_MIN=7
@@ -90,6 +91,21 @@ do
                 die 'ERROR: "--version" requires a non-empty option argument.'
             fi
             ;;
+        -jv|--jreversion) 
+            if [ "$2" ] 
+            then
+                JRE_VERSION=$2
+                shift
+            else
+                die 'ERROR: "--jreversion" requires a non-empty option argument.'
+            fi
+            ;;
+        -lv|--log4jversion) 
+            if [ "$2" ] 
+            then
+                LOG4J_VERSION=$2
+            fi
+            ;;                        
         --)  # End of all options.
             shift
             break
