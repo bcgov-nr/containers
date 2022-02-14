@@ -122,6 +122,7 @@ fi
 # Set image and build, if necessary
 if [ "${TOMCAT_LABEL_ENV}" == "local" ]
 then
+
     podman build -t "${CONTAINER_NAME}":"${TOMCAT_VERSION}" --build-arg TOMCATVERSION="${TOMCAT_VERSION}" ${DOCKERFILE_LOCATION}
     IMAGE="localhost/${CONTAINER_NAME}:${TOMCAT_VERSION}"
 

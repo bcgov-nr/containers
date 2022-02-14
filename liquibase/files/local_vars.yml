@@ -1,0 +1,11 @@
+#Template local variables file. Uncomment to pre-fill data in the playbook
+#playbook_vars_url: https://bwa.nrs.gov.bc.ca/int/stash/projects/FFS/repos/ffs-db/raw/src/cd/playbooks/vars/playbook_vars.yml?at=refs%2Fheads%2Ffeature%2F7.4.3
+#cdconf_target: dlvr
+#cd_version: 7.4.3-SNAPSHOT
+
+# Vault token
+#vault_token:
+
+# IDIR Info
+#username: <idir>@gov.bc.ca
+#password:
