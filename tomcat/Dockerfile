@@ -21,9 +21,8 @@ WORKDIR /tmp/tomcat
 
 # HACK: To extract the major version, to make the URL work
 RUN export TOMCAT_URL=https://archive.apache.org/dist/tomcat/tomcat-"${TOMCAT_VERSION:0:1}"/v"${TOMCAT_VERSION}"/bin/apache-tomcat-"${TOMCAT_VERSION}".tar.gz && \
-    curl -L -s $TOMCAT_URL | tar xzv -C . --strip-components 1 
-    # && \
-    #  rm -rf /tmp/tomcat/webapps/*
+    curl -L -s $TOMCAT_URL | tar xzv -C . --strip-components 1 && \
+    rm -rf /tmp/tomcat/webapps/*
 
 # Deployment container
 FROM registry.access.redhat.com/ubi8/ubi-micro
