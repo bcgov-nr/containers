@@ -10,18 +10,19 @@ Apache Tomcat is an open-source Java webserver.
 
 ### About
 ---
-The Dockerfile is setup to be able to generate a container for whatever desired combination of tomcat and Java Runtime Environment (JRE).
+The Dockerfile is setup to be able to generate a container for whatever desired combination of tomcat and Java (JDK/JRE).  
+
+Due to accessibility complications, the JDK/JRE will have to be supplied via volume mount.  Similarly for the bin, conf, 
+logs, and webapps directory contents.  Application specific customizations (eg setenv.sh, server.xml) are to be supplied via the volume mount.  See the infra-containers-config repo for this, while automated with Ansible.
 
 Because tomcat is containerized, there's no need to alter the default port tomcat operates on (8443/tcp) - the desired port on the host just needs to be mapped for translation.  That port can be specified via the deploy.sh, -p/--port flag.
-
-Application specific customizations (eg setenv.sh, server.xml) are to be supplied via the volume mount.  See the infra-containers-config repo for this, while automated with Ansible.
 
 ### Build
 ---
 Build and tag an image.  The relative path (here `.`) is to the Dockerfile directory.
 
 ```
-./deploy.sh --version 8.0.51 --jreversion 8u192 --port 8123
+./deploy.sh --version 8.0.51 --port 8123
 podman build -t tomcat .
 ```
 
@@ -30,8 +31,11 @@ podman build -t tomcat .
 Run a container.  This example specifies the port mapping (the second port value must match the EXPOSE in the Docerkfile); The only other alternative is to use: `--network=host` (which can ).
 
 ```
-./deploy.sh --version 8.0.51 --jreversion 8u192 --port 8123 -g
+./deploy.sh --version 8.0.51 --port 8123 -g
 podman run -i -t --rm --name tomcat \
+    -v "$(pwd)/bin:/usr/local/tomcat/bin:z" \
+    -v "$(pwd)/conf:/usr/local/tomcat/conf:z" \
+    -v "$(pwd)/jre:/usr/local/tomcat/jre:z" \
     -v "$(pwd)/logs:/usr/local/tomcat/logs:z" \
     -v "$(pwd)/webapps:/usr/local/tomcat/webapps:z" \
     -p <HOST_PORT>:8443/tcp \
