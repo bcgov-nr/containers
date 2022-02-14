@@ -14,8 +14,8 @@ WORKDIR /tmp/jre
 # HACK: Cuz Oracle requires login to get JRE(s)
 COPY ./files/JRE/jre-"${JRE_VERSION}"-linux-x64.tar.gz .
 RUN tar xzvf jre-"${JRE_VERSION}"-linux-x64.tar.gz -C . --strip-components 1 && \
-    rm jre-"${JRE_VERSION}"-linux-x64.tar.gz 
-    # && \ rm -rf man
+    rm jre-"${JRE_VERSION}"-linux-x64.tar.gz && \ 
+    rm -rf man
 
 WORKDIR /tmp/tomcat
 
@@ -30,3 +30,8 @@ FROM registry.access.redhat.com/ubi8/ubi-micro
 # Copy binary and configuration
 COPY --from=builder /tmp/tomcat /usr/local/tomcat
 COPY --from=builder /tmp/jre /usr/local/tomcat/jre
+COPY files/scripts/setenv.sh /usr/local/tomcat/bin
+
+EXPOSE 8443
+
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
