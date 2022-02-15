@@ -10,12 +10,34 @@ Apache Tomcat is an open-source Java webserver.
 
 ### About
 ---
-The Dockerfile is setup to be able to generate a container for whatever desired combination of tomcat and Java (JDK/JRE).  
+This container is intended for enabling containerization of legacy tomcat applications; new containerized tomcat would likely already be using [official tomcat containers](https://hub.docker.com/_/tomcat).
 
-Due to accessibility complications, the JDK/JRE will have to be supplied via volume mount.  Similarly for the bin, conf, 
-logs, and webapps directory contents.  Application specific customizations (eg setenv.sh, server.xml) are to be supplied via the volume mount.  See the infra-containers-config repo for this, while automated with Ansible.
+This container is meant to produce the tomcat and JDK/JRE combination, that would be consumed as the base image for legacy tomcat containers.  Due to accessibility complications, the JDK/JRE will have to be supplied via volume mount. 
 
-Because tomcat is containerized, there's no need to alter the default port tomcat operates on (8443/tcp) - the desired port on the host just needs to be mapped for translation.  That port can be specified via the deploy.sh, -p/--port flag.
+The following images:
+
+```
+tomcat:8.0.51-jre8u192
+tomcat:8.0.51-jre8u216
+```
+
+...would be referenced in a Dockerfile for a given legacy tomcat webapp container as:
+
+```
+FROM tomcat:8.0.51-jre8u192
+
+COPY /bin/setenv.sh /usr/local/tomcat/bin
+COPY /conf/server.xml /usr/local/tomcat/conf
+COPY /webapps/yourContainer /usr/local/tomcat/webapps
+
+EXPOSE 8443
+
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+```
+
+...as there's likely to be more than one legacy tomcat application container that would use tomcat:8.0.51-jre8u192/etc.  In the event of need, assuming the necessary combination of tomcat and JDK/JRE has already been produced, the FROM line just needs to be updated to reflect the desired tomcat container.
+
+Because tomcat is containerized, there's no need to alter the default port tomcat operates on (8443/tcp) - the desired port on the host just needs to be mapped for translation.
 
 ### Build
 ---
@@ -31,13 +53,9 @@ podman build -t tomcat .
 Run a container.  This example specifies the port mapping (the second port value must match the EXPOSE in the Docerkfile); The only other alternative is to use: `--network=host` (which can ).
 
 ```
-./deploy.sh --version 8.0.51 --port 8123 -g
+./deploy.sh --version 8.0.51 --port 8123
 podman run -i -t --rm --name tomcat \
-    -v "$(pwd)/bin:/usr/local/tomcat/bin:z" \
-    -v "$(pwd)/conf:/usr/local/tomcat/conf:z" \
     -v "$(pwd)/jre:/usr/local/tomcat/jre:z" \
-    -v "$(pwd)/logs:/usr/local/tomcat/logs:z" \
-    -v "$(pwd)/webapps:/usr/local/tomcat/webapps:z" \
     -p <HOST_PORT>:8443/tcp \
     <IMAGE ID>
 ```
@@ -70,5 +88,3 @@ podman logs tomcat --tail N
 podman logs tomcat | grep pattern
 podman logs tomcat | grep -i error
 ```
-
-Once a container is deployed, the logs should be accessible on the host, via the logs volume mount.

@@ -16,8 +16,9 @@ RUN export TOMCAT_URL=https://archive.apache.org/dist/tomcat/tomcat-"${TOMCAT_VE
 # Deployment container
 FROM registry.access.redhat.com/ubi8/ubi-micro
 
-# Copy tomcat
+# Copy tomcat, config
 COPY --from=builder /tmp/tomcat /usr/local/tomcat
+COPY /bin/setenv.sh /usr/local/tomcat/bin/
 
 # Create folder for JRE/JDK, to be provided via volume mount
 RUN mkdir /usr/local/tomcat/jre
