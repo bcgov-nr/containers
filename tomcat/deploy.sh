@@ -11,7 +11,6 @@
 #% Options:
 #%   -v, --version <version>        Version number of Tomcat to install, latest.  Default is 8.0.51.
 #%   -p, --port <number>            Host port that tomcat (listening on 8443) can be reached at.  Default is 8123.
-#%   -g, --generate                 Generate the systemd unit file for the container. Default is false.
 #%   --rhel=7                       Specify the version of RHEL the container uses.  Default is RHEL8.
 #%   -h, -?, --help                 Displays this help dialog.
 #%
@@ -49,9 +48,9 @@ do
                 sed -e "s|\${THIS_FILE}|${THIS_FILE}|g"
             exit
             ;;
-        -g|--generate)
-            ISGENERATE=true
-            ;;
+        # -g|--generate)
+        #     ISGENERATE=true
+        #     ;;
         # --env=?*) 
         #     # Delete everything up to "=" and assign the remainder:
         #     ENVFILE=${1#*=}
@@ -96,7 +95,7 @@ do
                 HOST_PORT=$2
                 shift
             else
-                die 'ERROR: "--jreversion" requires a non-empty option argument.'
+                die 'ERROR: "--port" requires a non-empty option argument.'
             fi
             ;;                                  
         --)  # End of all options.
@@ -126,36 +125,17 @@ then
     podman build -t "${CONTAINER_NAME}":"${TOMCAT_VERSION}" --build-arg TOMCATVERSION="${TOMCAT_VERSION}" ${DOCKERFILE_LOCATION}
     IMAGE="localhost/${CONTAINER_NAME}:${TOMCAT_VERSION}"
 
-    if [ ! -d bin ]; then
-      mkdir -p bin;
-    fi
-
-    if [ ! -d conf ]; then
-      mkdir -p conf;
-    fi
-
     if [ ! -d jre ]; then
       mkdir -p jre;
     fi
-
-    if [ ! -d logs ]; then
-      mkdir -p logs;
-    fi
-
-    if [ ! -d webapps ]; then
-      mkdir -p webapps;
-    fi   
+   
 else
     IMAGE="ghcr.io/bcgov/nr-ansible-${CONTAINER_NAME}:${TOMCAT_VERSION}"
 fi
 
 # log-opt path - use absolute path ONLY; do not point to Windows drives on WSL 
 podman run -i -t --rm --name "${CONTAINER_NAME}" \
-    -v "$(pwd)/bin:/usr/local/tomcat/bin:z" \
-    -v "$(pwd)/conf:/usr/local/tomcat/conf:z" \
     -v "$(pwd)/jre:/usr/local/tomcat/jre:z" \
-    -v "$(pwd)/logs:/usr/local/tomcat/logs:z" \
-    -v "$(pwd)/webapps:/usr/local/tomcat/webapps:z" \
     -p ${HOST_PORT}:8443/tcp \
     "${IMAGE}"
 
